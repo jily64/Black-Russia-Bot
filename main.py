@@ -11,7 +11,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram import F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+exit()
 
 load_dotenv()
 
