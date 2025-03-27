@@ -15,14 +15,16 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram import F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-exit()
+#exit()
 
 load_dotenv()
 
 TOKEN = getenv("BOT_TOKEN")
-SPONSORS = [-1001591752959]
-ADMIN_ID = 7169858812
+SPONSORS = [-1001591752959, -1002563183053]
+ADMIN_ID = 7161421601
 USER_STATES = {}
+TASKS = [-1001852100889]
+
 
 dp = Dispatcher()
 
@@ -57,6 +59,7 @@ async def check_sponsor(message: Message):
         try:
             chat_member = await bot.get_chat_member(id, user_id)
             if chat_member.status not in ['member', 'administrator', 'creator']:
+                
                 await message.answer("🖲️ Чтобы использовать данного бота, вам необходимо подписаться на всех спонсоров ↓", reply_markup=builder.as_markup())
                 return False                
 
@@ -76,21 +79,25 @@ async def command_start_handler(message: Message) -> None:
 
     ref = False
     if len(message.text.split()) > 1:
-        ref = True
-        custom_parameter = message.text.split()[1]
-        print(custom_parameter)
-        if custom_parameter in data_referal:
-            data_users[data_referal[custom_parameter]]["money"] += 50000
-
-            with open("users.json", "w", encoding="UTF-8") as f:
-                json.dump(data_users, f, ensure_ascii=False, indent=4)
+        if str(message.from_user.id) in data_users and data_users[str(message.from_user.id)]["url_used"] == True:
+            pass
+        else:
+            ref = True
+            custom_parameter = message.text.split()[1]
+            print(custom_parameter)
+            if custom_parameter in data_referal:
+                data_users[data_referal[custom_parameter]]["money"] += 50000
+                await bot.send_message(int(data_referal[custom_parameter]), f"Новый Реферал!\nИмя: {message.from_user.full_name}")
+                with open("users.json", "w", encoding="UTF-8") as f:
+                    json.dump(data_users, f, ensure_ascii=False, indent=4)
             
     if str(message.from_user.id) not in data_users:
         id = str(uuid.uuid4())
         user_data = {
             "url_used": bool(ref),
             "referal": id,
-            "money": 0
+            "money": 0,
+            "tasks": []
         }
 
         data_users[str(message.from_user.id)] = user_data
@@ -171,6 +178,64 @@ async def sponsor(message: Message):
 
     await message.reply(f"📝 Пожалуйста, введите номер вашего сервера ↓")
 
+@dp.message(F.text == "Задания💎")
+async def virt_giver(message: Message):
+    print(123)
+    if not await check_sponsor(message):
+        return
+    user_id = message.from_user.id
+
+    with open("users.json", "r", encoding="UTF-8") as f:
+        data_user = json.load(f)
+    
+    for task in TASKS:
+        print(task)
+        if task not in data_user[str(user_id)]["tasks"]:
+            print(1)
+            chat_member = await bot.get_chat_member(task, user_id)
+            if chat_member.status not in ['member', 'administrator', 'creator']:
+                chat = await bot.get_chat(task)
+                builder = InlineKeyboardBuilder()
+                builder.row(InlineKeyboardButton(text=chat.full_name, url=await bot.export_chat_invite_link(task)))
+                builder.row(InlineKeyboardButton(text="Проверить"))
+                await message.reply(f"Подпишитесь на канал и нажмите «Проверить»\n\nВознаграждение: +50000 виртов", reply_markup=builder.as_markup())
+                return
+            
+    await message.reply(f"На данный момент заданий нет. Вы пока продолжайте приглашать рефералов, и возвращайтесь к нам позже.")
+    
+
+
+
+@dp.message(F.text == "Проверить")
+async def virt_giver(message: Message):
+    user_id = message.from_user.id
+    if str(user_id) not in USER_STATES:
+        return
+    
+    with open("users.json", "r", encoding="UTF-8") as f:
+        data_user = json.load(f)
+    
+    for task in TASKS:
+        if task not in data_user[str(user_id)]["tasks"]:
+            chat_member = await bot.get_chat_member(task, user_id)
+            if chat_member.status not in ['member', 'administrator', 'creator']:
+                
+                data_user[str(user_id)]["tasks"].append(task)
+                data_user[str(user_id)]["money"]+=50000
+
+                with open("users.json", "w", encoding="UTF-8") as f:
+                    json.dump(data_user, f, ensure_ascii=False, indent=4)
+
+                await message.reply(f"Задание выполнено!\n\nВознаграждение: +50000 виртов")
+                return
+    await message.reply(f"Похоже вы не выполнили задание.")
+    
+                
+
+                
+
+
+
 @dp.message()
 async def virt_giver(message: Message):
     user_id = message.from_user.id
@@ -236,6 +301,7 @@ async def main() -> None:
 
     # And the run events dispatching
     await dp.start_polling(bot)
+
 
 
 if __name__ == "__main__":

@@ -1,12 +1,14 @@
 {
     "1150266474": {
         "url_used": true,
-        "referal": "8d56a2de-c6cb-4130-b3df-7ab67a65aa21",
-        "money": 1999999998866
+        "referal": "593c411e-f259-4434-9ea1-a4b4831584c0",
+        "money": 50000,
+        "tasks": []
     },
-    "6603648744": {
+    "7169858812": {
         "url_used": true,
-        "referal": "e3cec1e1-a2e3-4df5-92d3-81146012e3c8",
-        "money": 2000000000000
+        "referal": "adde4cff-9eae-405e-92d2-3c7c8b7ee099",
+        "money": 0,
+        "tasks": []
     }
 }
