@@ -1,7 +1,3 @@
-# Если вы видите эту надпись, то не выполняйте заказ этого клиента!
-# Он не оплатил мою работу. Телеграмм для вопросов @oily_oaff
-
-
 import asyncio
 import logging, uuid
 import sys, json
@@ -12,7 +8,7 @@ from aiogram import Bot, Dispatcher, html
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram import F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 #exit()
@@ -23,7 +19,7 @@ TOKEN = getenv("BOT_TOKEN")
 SPONSORS = [-1001591752959, -1002563183053]
 ADMIN_ID = 7161421601
 USER_STATES = {}
-TASKS = [-1001852100889]
+TASKS = []
 
 
 dp = Dispatcher()
@@ -128,7 +124,7 @@ async def earn(message: Message):
         data_users = json.load(f)
 
     url = data_users[str(message.from_user.id)]["referal"]
-    await message.reply(f"Получай по 50.000 игровой валюты за одного приглашенного вами друга который перейдёт по вашей реферальной ссылке 👤\n\nСвою реферальную ссылку вы можете отправлять в личные сообщения своих друзей, группах и в различных телеграм каналах 🌐\n\nЧем больше вы приведете друзей, тем больше игровой валюты вы сможете заработать 🆙\n——————————\n🔗 Ваша реферальная ссылка: https://t.me/Damkrad_bot?start={url}")
+    await message.reply(f"Получай по 50.000 игровой валюты за одного приглашенного вами друга который перейдёт по вашей реферальной ссылке 👤\n\nСвою реферальную ссылку вы можете отправлять в личные сообщения своих друзей, группах и в различных телеграм каналах 🌐\n\nЧем больше вы приведете друзей, тем больше игровой валюты вы сможете заработать 🆙\n——————————\n🔗 Ваша реферальная ссылка: https://t.me/MatreshkaFarmVirt_bot?start={url}")
 
 @dp.message(F.text == "Мой баланс 💳")
 async def balance(message: Message):
@@ -154,7 +150,7 @@ async def reviews(message: Message):
     if not await check_sponsor(message):
         return
     
-    await message.reply(f"Не переживайте, мы категорически против обмана, поэтому именно у нас мы можете чувствовать себя спокойно 🤗\n\n🧑‍💻 Наш телеграм канал с отзывами о выводах виртов:")
+    await message.reply(f"Не переживайте, мы категорически против обмана, поэтому именно у нас мы можете чувствовать себя спокойно 🤗\n\n🧑‍💻 Наш телеграм канал с отзывами о выводах виртов:\n\n@otizivi_vivod_magnat")
 
 @dp.message(F.text == "Хочу стать спонсором ⚜️")
 async def sponsor(message: Message):
@@ -193,24 +189,23 @@ async def virt_giver(message: Message):
         if task not in data_user[str(user_id)]["tasks"]:
             print(1)
             chat_member = await bot.get_chat_member(task, user_id)
-            if chat_member.status not in ['member', 'administrator', 'creator']:
-                chat = await bot.get_chat(task)
-                builder = InlineKeyboardBuilder()
-                builder.row(InlineKeyboardButton(text=chat.full_name, url=f"https://t.me/{chat.username}"))
-                builder.row(InlineKeyboardButton(text="Проверить"))
-                await message.reply(f"Подпишитесь на канал и нажмите «Проверить»\n\nВознаграждение: +50000 виртов", reply_markup=builder.as_markup())
-                return
-            
-    await message.reply(f"На данный момент заданий нет. Вы пока продолжайте приглашать рефералов, и возвращайтесь к нам позже.")
+            chat = await bot.get_chat(task)
+            builder = InlineKeyboardBuilder()
+            builder.row(InlineKeyboardButton(text=chat.full_name, url=await bot.export_chat_invite_link(task)))
+            builder.row(InlineKeyboardButton(text="Проверить", callback_data="check_task"))
+            await message.reply(f"Подпишитесь на канал и нажмите «Проверить»\n\nВознаграждение: +50000 виртов", reply_markup=builder.as_markup())
+            return
+           
+    await message.reply(f"На данный момент заданий нет. Вы пока продолжайте приглашать рефералов, и возвращайтесь к нам позже.", reply_markup=keyboard)
     
 
 
 
-@dp.message(F.text == "Проверить")
-async def virt_giver(message: Message):
-    user_id = message.from_user.id
-    if str(user_id) not in USER_STATES:
-        return
+@dp.callback_query()
+async def virt_giver(call: CallbackQuery):
+    print("callback")
+    message = call.message
+    user_id = call.from_user.id
     
     with open("users.json", "r", encoding="UTF-8") as f:
         data_user = json.load(f)
@@ -218,7 +213,7 @@ async def virt_giver(message: Message):
     for task in TASKS:
         if task not in data_user[str(user_id)]["tasks"]:
             chat_member = await bot.get_chat_member(task, user_id)
-            if chat_member.status not in ['member', 'administrator', 'creator']:
+            if chat_member.status in ['member', 'administrator', 'creator']:
                 
                 data_user[str(user_id)]["tasks"].append(task)
                 data_user[str(user_id)]["money"]+=50000
@@ -226,9 +221,9 @@ async def virt_giver(message: Message):
                 with open("users.json", "w", encoding="UTF-8") as f:
                     json.dump(data_user, f, ensure_ascii=False, indent=4)
 
-                await message.reply(f"Задание выполнено!\n\nВознаграждение: +50000 виртов")
+                await message.reply(f"Задание выполнено!\n\nВознаграждение: +50000 виртов", reply_markup=keyboard)
                 return
-    await message.reply(f"Похоже вы не выполнили задание.")
+    await message.reply(f"Похоже вы не выполнили задание или оно уже было выполненно", reply_markup=keyboard)
     
                 
 
@@ -275,14 +270,14 @@ async def virt_giver(message: Message):
             data_users = json.load(f)
         print(int(message.text) < 10**6)
         if data_users[str(user_id)]["money"] < int(message.text) or int(message.text) < 10**6:
-            await message.reply(f"Упс! Кажется, что на вашем балансе недостаточно средств, видимо вы привели слишком мало друзей или вы ввели сумму меньше 1.000.000\n\n📋 Ваш баланс составляет: {data_users[str(user_id)]["money"]}", reply_markup=keyboard)
+            await message.reply(f"Упс! Кажется, что на вашем балансе недостаточно средств, видимо вы привели слишком мало друзей или вы ввели сумму меньше 1.000.000\n\n📋 Ваш баланс составляет: {data_users[str(user_id)]['money']}", reply_markup=keyboard)
             USER_STATES.pop(str(user_id))
             return
 
         USER_STATES[str(user_id)]["virts"] = int(message.text)
         USER_STATES[str(user_id)]["state"] = "none"
         
-        message_to_admin = f"Новая заявка на вывод виртов:\n\nСервер: {USER_STATES[str(user_id)]["server"]}\nБанк: {USER_STATES[str(user_id)]["bank"]}\nКол-во виртов: {USER_STATES[str(user_id)]["virts"]}"
+        message_to_admin = f"Новая заявка на вывод виртов:\n\nСервер: {USER_STATES[str(user_id)]['server']}\nБанк: {USER_STATES[str(user_id)]['bank']}\nКол-во виртов: {USER_STATES[str(user_id)]['virts']}"
         await bot.send_message(ADMIN_ID, message_to_admin)
 
         USER_STATES.pop(str(user_id))
