@@ -51,7 +51,7 @@ async def check_sponsor(message: Message):
         chat = await bot.get_chat(id)
 
         builder.row(InlineKeyboardButton(
-        text=chat.full_name, url=await bot.export_chat_invite_link(id))
+        text=chat.full_name, url=f"https://t.me/{chat.username}")
     )
 
 
@@ -196,7 +196,7 @@ async def virt_giver(message: Message):
             if chat_member.status not in ['member', 'administrator', 'creator']:
                 chat = await bot.get_chat(task)
                 builder = InlineKeyboardBuilder()
-                builder.row(InlineKeyboardButton(text=chat.full_name, url=await bot.export_chat_invite_link(task)))
+                builder.row(InlineKeyboardButton(text=chat.full_name, url=f"https://t.me/{chat.username}"))
                 builder.row(InlineKeyboardButton(text="Проверить"))
                 await message.reply(f"Подпишитесь на канал и нажмите «Проверить»\n\nВознаграждение: +50000 виртов", reply_markup=builder.as_markup())
                 return
