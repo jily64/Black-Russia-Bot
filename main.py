@@ -67,6 +67,9 @@ async def check_sponsor(message: Message):
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
+    if not await check_sponsor(message):
+        return
+    
     with open("users.json", "r", encoding="UTF-8") as f:
         data_users = json.load(f)
 
@@ -107,11 +110,6 @@ async def command_start_handler(message: Message) -> None:
 
     with open("referals.json", "w", encoding="UTF-8") as f:
         json.dump(data_referal, f, ensure_ascii=False, indent=4)
-
-        
-
-    if not await check_sponsor(message):
-        return
 
     await message.answer("Добро пожаловать в нашего телеграм бота «FarmVirt»! 👋\n\nИменно здесь у вас есть уникальная возможность заработать вирты на проекте Matreshka RP, всего лишь приглашая друзей по своей реферальной ссылке 👤", reply_markup=keyboard)
 
