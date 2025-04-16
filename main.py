@@ -85,7 +85,7 @@ async def command_start_handler(message: Message) -> None:
             custom_parameter = message.text.split()[1]
             print(custom_parameter)
             if custom_parameter in data_referal:
-                data_users[data_referal[custom_parameter]]["money"] += 30000
+                data_users[data_referal[custom_parameter]]["money"] += 50000
                 await bot.send_message(int(data_referal[custom_parameter]), f"Новый Реферал!\nИмя: {message.from_user.full_name}")
                 with open("users.json", "w", encoding="UTF-8") as f:
                     json.dump(data_users, f, ensure_ascii=False, indent=4)
